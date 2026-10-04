@@ -1,0 +1,6 @@
+# Core runtime — keep versions loose for Streamlit Cloud
+streamlit>=1.32.0
+pandas>=2.0.0
+plotly>=5.18.0
+openpyxl>=3.1.0        # needed to read the original .xlsx from UCI / Kaggle
+XlsxWriter>=3.1.0

@@ -1,0 +1,31 @@
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+.env
+
+# Data — raw files and the database are large (25-75 MB).
+# They are NOT committed. Rebuild locally with python -m src.data_prep
+# (see data/README_DATA.md) or host the cleaned CSV separately.
+*.db
+*.db-journal
+*.xlsx
+*.xls
+*.zip
+data/raw/*
+data/*.csv
+data/*.txt
+!data/.gitkeep
+!data/README_DATA.md
+
+# Tooling junk
+.freebuff/
+__pycache__/
+
+# Streamlit
+.streamlit/secrets.toml
+
+# OS
+.DS_Store
+Thumbs.db

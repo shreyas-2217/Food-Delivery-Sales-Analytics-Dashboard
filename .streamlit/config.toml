@@ -1,0 +1,14 @@
+# Light workspace, ink text, evergreen accent. Display/body/data fonts are
+# loaded in app.py (Archivo / IBM Plex Sans / IBM Plex Mono).
+[theme]
+primaryColor = "#0B5F55"
+backgroundColor = "#FFFFFF"
+secondaryBackgroundColor = "#F2F4F7"
+textColor = "#0E1116"
+font = "sans serif"
+
+[server]
+headless = true
+
+[client]
+toolbarMode = "minimal"
