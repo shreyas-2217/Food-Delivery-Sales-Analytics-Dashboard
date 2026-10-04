@@ -743,6 +743,22 @@ MIN_DATE = pd.to_datetime(bounds["min_date"]).date()
 MAX_DATE = pd.to_datetime(bounds["max_date"]).date()
 ALL_CITIES: list[str] = bounds.get("cities") or bounds.get("countries", [])
 
+# Guard against empty or unreadable order dates (NaT would crash the widgets
+# below with an obscure formatting error). Fail here with the actual state.
+if (
+    not isinstance(MIN_DATE, date)
+    or not isinstance(MAX_DATE, date)
+    or pd.isna(MIN_DATE)
+    or pd.isna(MAX_DATE)
+    or MIN_DATE > MAX_DATE
+):
+    st.error(
+        "Order dates are missing or unreadable. "
+        f"Got range {bounds.get('min_date')!r} to {bounds.get('max_date')!r}."
+    )
+    st.info("Rebuild the data: place the Swiggy file in data/, run python -m src.data_prep, and relaunch.")
+    st.stop()
+
 # ----------------------------------------------------------------------------
 # Filter rail
 # ----------------------------------------------------------------------------

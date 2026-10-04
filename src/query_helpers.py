@@ -41,45 +41,77 @@ def load_sql(filename: str) -> str:
     return path.read_text(encoding="utf-8")
 
 
+def _table_exists(db_path: Path | str = DEFAULT_DB) -> bool:
+    try:
+        with get_connection(db_path) as conn:
+            cur = conn.cursor()
+            cur.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='orders'")
+            return cur.fetchone() is not None
+    except Exception:
+        return False
+
+
+def _orders_diagnostics(db_path: Path | str = DEFAULT_DB) -> tuple[int, str | None, str | None]:
+    """Return (row count, min date, max date) for the orders table."""
+    with get_connection(db_path) as conn:
+        cur = conn.cursor()
+        cur.execute("SELECT COUNT(*) FROM orders")
+        n = cur.fetchone()[0]
+        cur.execute("SELECT MIN(date(OrderDate)), MAX(date(OrderDate)) FROM orders")
+        mn, mx = cur.fetchone()
+    return n, mn, mx
+
+
+def _build_from_csv(source: Path, db_path: Path = DEFAULT_DB) -> int:
+    """Build the orders table from a CSV source. Returns rows written."""
+    df = pd.read_csv(source, parse_dates=["OrderDate"])
+    print(f"[ensure_db] parsed {len(df)} rows from {source.name} "
+          f"({source.stat().st_size} bytes)")
+    df["OrderDate"] = pd.to_datetime(df["OrderDate"]).dt.strftime("%Y-%m-%d")
+    db_path.parent.mkdir(parents=True, exist_ok=True)
+    with get_connection(db_path) as conn:
+        df.to_sql("orders", conn, if_exists="replace", index=False)
+        cur = conn.cursor()
+        cur.execute("CREATE INDEX IF NOT EXISTS idx_orders_date ON orders(OrderDate)")
+        cur.execute("CREATE INDEX IF NOT EXISTS idx_orders_city ON orders(City)")
+        cur.execute("CREATE INDEX IF NOT EXISTS idx_orders_restaurant ON orders(Restaurant)")
+        cur.execute("CREATE INDEX IF NOT EXISTS idx_orders_item ON orders(Item)")
+        cur.execute("SELECT COUNT(*) FROM orders")
+        n = cur.fetchone()[0]
+    print(f"[ensure_db] orders table now has {n} rows")
+    return n
+
+
 def ensure_db() -> Path:
     """
-    Make sure the SQLite DB exists.
-    - If data/retail.db with an orders table exists, use it.
+    Make sure the SQLite DB exists with a usable orders table.
+    - If data/retail.db with a non-empty orders table and valid dates exists, use it.
     - Else build it from data/cleaned_orders.csv if present.
     - Else build it from the committed data/cleaned_orders_sample.csv
       (stratified sample used for hosting).
-    - Else raise an error telling the user to run src/data_prep.py.
+    - Raises a detailed error naming row counts when nothing usable is found,
+      so hosting logs show the data state instead of a downstream crash.
     """
-    if DEFAULT_DB.exists():
-        # Check the orders table exists (older builds had sales)
-        try:
-            with get_connection(DEFAULT_DB) as conn:
-                cur = conn.cursor()
-                cur.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='orders'")
-                if cur.fetchone():
-                    return DEFAULT_DB
-        except Exception:
-            pass
+    tried: list[str] = []
+    if DEFAULT_DB.exists() and _table_exists():
+        n, mn, mx = _orders_diagnostics()
+        print(f"[ensure_db] existing orders table: {n} rows, {mn} to {mx}")
+        if n > 0 and mn is not None and mx is not None:
+            return DEFAULT_DB
+        tried.append(f"existing db ({n} rows)")
     for source in (CLEANED_CSV, SAMPLE_CSV):
         if source.exists():
-            df = pd.read_csv(source, parse_dates=["OrderDate"])
-            df["OrderDate"] = pd.to_datetime(df["OrderDate"]).dt.strftime("%Y-%m-%d")
-            DEFAULT_DB.parent.mkdir(parents=True, exist_ok=True)
-            with get_connection(DEFAULT_DB) as conn:
-                df.to_sql("orders", conn, if_exists="replace", index=False)
-                cur = conn.cursor()
-                cur.execute("CREATE INDEX IF NOT EXISTS idx_orders_date ON orders(OrderDate)")
-                cur.execute("CREATE INDEX IF NOT EXISTS idx_orders_city ON orders(City)")
-                cur.execute("CREATE INDEX IF NOT EXISTS idx_orders_restaurant ON orders(Restaurant)")
-                cur.execute("CREATE INDEX IF NOT EXISTS idx_orders_item ON orders(Item)")
-            return DEFAULT_DB
+            n = _build_from_csv(source)
+            _, mn, mx = _orders_diagnostics()
+            if n > 0 and mn is not None and mx is not None:
+                return DEFAULT_DB
+            tried.append(f"{source.name} (built {n} rows)")
     if DEFAULT_DB.exists():
         return DEFAULT_DB
-    raise FileNotFoundError(
-        "Database not found. Run locally first:\n"
-        "  1. Put the Swiggy file in data/\n"
-        "  2. python -m src.data_prep\n"
-        "  3. Re-launch: streamlit run app.py"
+    raise RuntimeError(
+        "No usable order data found. Tried: "
+        + (", ".join(tried) if tried else "nothing")
+        + ". Run locally: place the Swiggy file in data/ and run python -m src.data_prep."
     )
 
 
