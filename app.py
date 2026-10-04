@@ -1,5 +1,5 @@
 """
-Retail Sales Analytics Dashboard — Streamlit app (Swiggy food orders)
+Food Delivery Sales Analytics Dashboard — Streamlit app (Swiggy food orders)
 ---------------------------------------------------------------------
 Filterable view of order revenue by period, restaurant, dish, city and
 category. Queries are parameterised against SQLite (data/retail.db).
@@ -29,7 +29,7 @@ from src.query_helpers import (
 )
 
 st.set_page_config(
-    page_title="Sales performance dashboard",
+    page_title="Food Delivery Sales Analytics Dashboard",
     page_icon="📊",
     layout="wide",
     initial_sidebar_state="auto",
@@ -775,7 +775,7 @@ if "cities_sel" not in st.session_state:
 
 with st.sidebar:
     st.markdown(
-        '<div class="rail-brand">Retail Sales Analytics'
+        '<div class="rail-brand">Food Delivery Sales Analytics'
         "<span>Swiggy order data · Jan–Aug 2025</span></div>",
         unsafe_allow_html=True,
     )
@@ -907,6 +907,11 @@ scope_bits = [
     else f"All {len(ALL_CITIES)} cities",
     f"{total_records:,} order lines",
 ]
+# The hosted demo builds from a small committed sample instead of the full
+# file, so label it to keep the numbers honest. Full local builds stay quiet.
+full_rows = int(cached_query("SELECT COUNT(*) AS n FROM orders", ()).iloc[0]["n"])
+if full_rows < 100000:
+    scope_bits.append("Demo uses a sample of the data")
 scope_line = " · ".join(scope_bits)
 
 if df_buckets.empty:
@@ -943,7 +948,7 @@ st.markdown(
     '<div class="masthead">'
     '<div class="mh-main">'
     '<div class="mh-eyebrow">Retail sales · Swiggy order data · Jan–Aug 2025</div>'
-    "<h1>Sales performance dashboard</h1>"
+    "<h1>Food Delivery Sales Analytics Dashboard</h1>"
     f'<div class="mh-scope">{esc(scope_line)}</div>'
     f'<p class="mh-brief">{brief}</p>'
     "</div>"
@@ -1331,7 +1336,7 @@ with tab_rest:
                     "Avg rating": st.column_config.NumberColumn(format="%.2f"),
                 },
             )
-        sql_box(["01_top_customers.sql"])
+        sql_box(["01_top_restaurants.sql"])
 
 # ---- Dishes ----------------------------------------------------------------
 with tab_dish:
@@ -1475,7 +1480,7 @@ with tab_geo:
                     "Avg line (₹)": st.column_config.TextColumn(),
                 },
             )
-        sql_box(["04_revenue_by_country.sql"])
+        sql_box(["04_revenue_by_city.sql"])
 
 # ---- Categories and recency -----------------------------------------------
 with tab_mix:

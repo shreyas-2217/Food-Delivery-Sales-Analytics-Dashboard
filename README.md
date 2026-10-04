@@ -1,4 +1,4 @@
-# Retail Sales Analytics Dashboard
+# Food Delivery Sales Analytics Dashboard
 
 Analysis of Swiggy food orders with SQL, Python and Streamlit. Order records are cleaned with pandas, loaded into SQLite, and presented in a filterable dashboard by restaurant, dish, city and category.
 
@@ -46,10 +46,10 @@ Running python -m src.data_prep prints row counts before and after each step.
 Results from the current database build:
 
 - Records: 197,490 raw, 197,364 after cleaning (99.94%). 2 rows with missing keys and 124 rows with invalid prices were removed. Total revenue Rs.52,984,174.39 across 197,364 order lines, 993 restaurants and 28 cities.
-- Top restaurant: McDonald's in Bengaluru with Rs.516,113.77 across 2,032 lines, followed by KFC in Ahmedabad (sql/01_top_customers.sql).
+- Top restaurant: McDonald's in Bengaluru with Rs.516,113.77 across 2,032 lines, followed by KFC in Ahmedabad (sql/01_top_restaurants.sql).
 - Trend: January 2025 was highest at Rs.6,822,566.03. Monthly movement from February to August stayed within a narrow band, with the largest change in February at minus 8.2 percent (sql/02_monthly_revenue_trend.sql).
 - Dishes: demand is spread across 56,521 distinct items. Highest was Chicken Supreme Thin n Crispy at Rs.63,583.00, 0.12 percent of revenue (sql/03_top_products.sql).
-- Cities: Bengaluru leads at 10.30 percent (Rs.5,456,798.41), followed by Lucknow, Hyderabad, Mumbai and New Delhi. Demand is balanced across cities (sql/04_revenue_by_country.sql).
+- Cities: Bengaluru leads at 10.30 percent (Rs.5,456,798.41), followed by Lucknow, Hyderabad, Mumbai and New Delhi. Demand is balanced across cities (sql/04_revenue_by_city.sql).
 - Categories: Recommended leads at 13.57 percent (Rs.7,187,808.53), followed by Main Course. Veg accounts for Rs.34,558,176.29 against Non-Veg Rs.18,425,998.10. Outlet inactivity, defined as no record in the 90 days before the latest order date, is 9 of 1,598 restaurant-city outlets (sql/05_repeat_vs_onetime.sql, sql/06_churn.sql).
 
 Each section of the dashboard includes the chart, the underlying table and the SQL used.
@@ -63,7 +63,7 @@ Each section of the dashboard includes the chart, the underlying table and the S
 ## Running the project
 
 ```bash
-cd "Retail Sales Analytics Dashboard"
+cd "Food-Delivery-Sales-Analytics-Dashboard"
 pip install -r requirements.txt
 python -m src.data_prep --raw "data/SWIGGY DATA.txt"
 streamlit run app.py
@@ -99,7 +99,7 @@ The database file and raw TXT are not committed as they are large.
 ## Structure
 
 ```
-Retail Sales Analytics Dashboard/
+Food-Delivery-Sales-Analytics-Dashboard/
 ├── app.py
 ├── requirements.txt
 ├── .streamlit/config.toml

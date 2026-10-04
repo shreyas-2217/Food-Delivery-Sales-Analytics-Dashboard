@@ -1,6 +1,5 @@
--- 04_revenue_by_country.sql
+-- 04_revenue_by_city.sql
 -- BUSINESS QUESTION: Which cities contribute the most revenue?
--- File name is kept for compatibility; it analyses City rather than Country.
 -- TABLE: orders(..., City, State, Revenue, Restaurant)
 
 WITH city_stats AS (
