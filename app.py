@@ -423,6 +423,21 @@ def num(x, decimals: int = 0) -> str:
     return f"{v:,.{decimals}f}"
 
 
+def fmt_date(value, fmt: str = "%d %b %Y") -> str:
+    """Format any date-like value, returning an em dash for missing ones.
+
+    Query results can hold NULL dates (empty selections); formatting those
+    directly raises on NaT, so every display site uses this helper.
+    """
+    try:
+        d = pd.to_datetime(value)
+    except Exception:
+        return "--"
+    if pd.isna(d):
+        return "--"
+    return d.strftime(fmt)
+
+
 def inr_compact(x) -> str:
     """Short rupee amount for axes, tooltips and headlines: 68.2L / 5.30 Cr."""
     try:
@@ -568,13 +583,13 @@ def configure(
 
 def month_label(m) -> str:
     """2025-01 -> Jan 2025."""
-    return pd.to_datetime(m).strftime("%b %Y")
+    return fmt_date(m, "%b %Y")
 
 
 def bucket_label(b) -> str:
     """Format a chart bucket for axis ticks and prose."""
-    ts = pd.to_datetime(b)
-    return ts.strftime("%d %b") if bucket_fmt.endswith("%d") else ts.strftime("%b %Y")
+    fmt = "%d %b" if bucket_fmt.endswith("%d") else "%b %Y"
+    return fmt_date(b, fmt)
 
 
 def bucket_ticks(fig, values, labels, max_ticks: int = 12):
@@ -971,7 +986,7 @@ st.markdown(
     '<div class="mh-spec">'
     '<div><span>GRAIN</span><b>one row = one order line</b></div>'
     '<div><span>STORE</span><b>SQLite · parameterised SQL</b></div>'
-    f'<div><span>LAST ORDER</span><b>{pd.to_datetime(profile["max_d"]).strftime("%d %b %Y")}</b></div>'
+    f'<div><span>LAST ORDER</span><b>{MAX_DATE.strftime("%d %b %Y")}</b></div>'
     "</div></div>",
     unsafe_allow_html=True,
 )
@@ -1636,7 +1651,7 @@ with tab_mix:
                 f'<div class="insight"><span class="ins-tag">INSIGHT</span>'
                 f"<b>{inactive_rate:.1f}%</b> of outlets "
                 f"({n_inactive:,} of {n_outlets:,}) have not taken an order in the "
-                f"90 days before {pd.to_datetime(rate['max_date']).strftime('%d %b %Y')}. "
+                f"90 days before {fmt_date(rate['max_date'])}. "
                 f"Ten most dormant outlets are listed below.</div>",
                 unsafe_allow_html=True,
             )
@@ -1740,8 +1755,8 @@ st.markdown(
     "were removed before analysis. Source: Swiggy orders file in data/. "
     f"<b>Coverage.</b> {int(profile['lines']):,} lines · "
     f"{int(profile['outlets']):,} outlets · {int(profile['cities']):} cities · "
-    f"{pd.to_datetime(profile['min_d']).strftime('%d %b %Y')} – "
-    f"{pd.to_datetime(profile['max_d']).strftime('%d %b %Y')}."
+    f"{fmt_date(profile['min_d'])} – "
+    f"{fmt_date(profile['max_d'])}."
     "</div>"
     '<div class="foot-credit">Streamlit · pandas · SQLite · Plotly — '
     "queries in sql/, build in src/data_prep.py</div>",
