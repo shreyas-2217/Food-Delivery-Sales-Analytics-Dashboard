@@ -788,12 +788,19 @@ with st.sidebar:
         on_change=apply_quick_range,
     )
 
+    # NOTE: pass an explicit in-bounds default date. Newer Streamlit
+    # versions validate the widget default against min/max at build time,
+    # and the implicit default (today) lies outside this 2025 dataset.
     start_d: date = st.date_input(
-        "Start date", key="start_d",
+        "Start date",
+        value=max(MIN_DATE, min(st.session_state["start_d"], MAX_DATE)),
+        key="start_d",
         min_value=MIN_DATE, max_value=MAX_DATE,
     )
     end_d: date = st.date_input(
-        "End date", key="end_d",
+        "End date",
+        value=max(MIN_DATE, min(st.session_state["end_d"], MAX_DATE)),
+        key="end_d",
         min_value=MIN_DATE, max_value=MAX_DATE,
     )
 
