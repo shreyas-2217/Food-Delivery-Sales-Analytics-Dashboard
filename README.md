@@ -81,13 +81,9 @@ sqlite3 data/retail.db < sql/02_monthly_revenue_trend.sql
 
 The database file and raw TXT are not committed as they are large.
 
-1. After cleaning, export the cleaned table for hosting:
-   ```python
-   import sqlite3, pandas as pd
-   con = sqlite3.connect("data/retail.db")
-   pd.read_sql("SELECT * FROM orders", con).to_csv("data/cleaned_orders.csv", index=False)
-   ```
-   On startup the app rebuilds retail.db from cleaned_orders.csv if the database is missing.
+1. The repo includes `data/cleaned_orders_sample.csv`, a stratified sample
+   (13,440 rows across all months and cities). The app builds `retail.db`
+   from it automatically on startup, so the hosted demo works with no setup.
 2. Push to GitHub.
 3. Deploy on Streamlit Community Cloud with main file app.py.
 

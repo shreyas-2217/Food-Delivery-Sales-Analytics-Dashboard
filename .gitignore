@@ -18,6 +18,7 @@ data/*.csv
 data/*.txt
 !data/.gitkeep
 !data/README_DATA.md
+!data/cleaned_orders_sample.csv
 
 # Tooling junk
 .freebuff/

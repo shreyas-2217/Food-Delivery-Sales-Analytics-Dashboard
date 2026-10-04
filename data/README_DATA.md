@@ -8,6 +8,7 @@ The raw data file is not committed to git (it is large). To rebuild:
    Price, Rating, RatingCount).
 2. Run `python -m src.data_prep --raw "data/SWIGGY DATA.txt"`.
 
-This creates `data/retail.db` (table `orders`) and `data/cleaned_orders.csv`.
-Both are git-ignored. For hosting, upload the cleaned CSV separately and
-point the app at it; see the Deployment section in README.md.
+This creates `data/retail.db` (table `orders`) for local use.
+Both the raw file and the database are git-ignored. For hosting, the repo
+includes the committed `data/cleaned_orders_sample.csv`, which the app
+builds the database from automatically on startup.

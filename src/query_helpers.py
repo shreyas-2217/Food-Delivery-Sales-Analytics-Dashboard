@@ -17,6 +17,7 @@ DATA_DIR = PROJECT_ROOT / "data"
 SQL_DIR = (PROJECT_ROOT / "sql").resolve()
 DEFAULT_DB = DATA_DIR / "retail.db"
 CLEANED_CSV = DATA_DIR / "cleaned_orders.csv"
+SAMPLE_CSV = DATA_DIR / "cleaned_orders_sample.csv"
 
 
 def get_connection(db_path: Path | str = DEFAULT_DB) -> sqlite3.Connection:
@@ -43,8 +44,10 @@ def load_sql(filename: str) -> str:
 def ensure_db() -> Path:
     """
     Make sure the SQLite DB exists.
-    - If data/retail.db exists, use it.
-    - Else if data/cleaned_orders.csv exists, build the orders table from it.
+    - If data/retail.db with an orders table exists, use it.
+    - Else build it from data/cleaned_orders.csv if present.
+    - Else build it from the committed data/cleaned_orders_sample.csv
+      (stratified sample used for hosting).
     - Else raise an error telling the user to run src/data_prep.py.
     """
     if DEFAULT_DB.exists():
@@ -57,18 +60,19 @@ def ensure_db() -> Path:
                     return DEFAULT_DB
         except Exception:
             pass
-    if CLEANED_CSV.exists():
-        df = pd.read_csv(CLEANED_CSV, parse_dates=["OrderDate"])
-        df["OrderDate"] = pd.to_datetime(df["OrderDate"]).dt.strftime("%Y-%m-%d")
-        DEFAULT_DB.parent.mkdir(parents=True, exist_ok=True)
-        with get_connection(DEFAULT_DB) as conn:
-            df.to_sql("orders", conn, if_exists="replace", index=False)
-            cur = conn.cursor()
-            cur.execute("CREATE INDEX IF NOT EXISTS idx_orders_date ON orders(OrderDate)")
-            cur.execute("CREATE INDEX IF NOT EXISTS idx_orders_city ON orders(City)")
-            cur.execute("CREATE INDEX IF NOT EXISTS idx_orders_restaurant ON orders(Restaurant)")
-            cur.execute("CREATE INDEX IF NOT EXISTS idx_orders_item ON orders(Item)")
-        return DEFAULT_DB
+    for source in (CLEANED_CSV, SAMPLE_CSV):
+        if source.exists():
+            df = pd.read_csv(source, parse_dates=["OrderDate"])
+            df["OrderDate"] = pd.to_datetime(df["OrderDate"]).dt.strftime("%Y-%m-%d")
+            DEFAULT_DB.parent.mkdir(parents=True, exist_ok=True)
+            with get_connection(DEFAULT_DB) as conn:
+                df.to_sql("orders", conn, if_exists="replace", index=False)
+                cur = conn.cursor()
+                cur.execute("CREATE INDEX IF NOT EXISTS idx_orders_date ON orders(OrderDate)")
+                cur.execute("CREATE INDEX IF NOT EXISTS idx_orders_city ON orders(City)")
+                cur.execute("CREATE INDEX IF NOT EXISTS idx_orders_restaurant ON orders(Restaurant)")
+                cur.execute("CREATE INDEX IF NOT EXISTS idx_orders_item ON orders(Item)")
+            return DEFAULT_DB
     if DEFAULT_DB.exists():
         return DEFAULT_DB
     raise FileNotFoundError(
