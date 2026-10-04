@@ -1,6 +1,5 @@
--- 05_repeat_vs_onetime.sql
+-- 05_category_mix.sql
 -- BUSINESS QUESTION: Which categories and diet types drive sales?
--- File name is kept for compatibility.
 -- NOTE: The Swiggy file has no CustomerID, so customer repeat analysis is not
 -- possible. Category and VegType mix is used instead: it shows where demand
 -- concentrates, which guides menu and stock decisions.

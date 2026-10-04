@@ -1,4 +1,4 @@
--- 06_churn.sql
+-- 06_outlet_recency.sql
 -- BUSINESS QUESTION: Which restaurants have gone inactive?
 -- DEFINITION: A restaurant is flagged inactive if it has no record in the
 -- 90 days before the latest OrderDate in the dataset.

@@ -1676,9 +1676,9 @@ with tab_mix:
 
         c1, c2 = st.columns(2)
         with c1:
-            sql_box(["05_repeat_vs_onetime.sql"])
+            sql_box(["05_category_mix.sql"])
         with c2:
-            sql_box(["06_churn.sql"])
+            sql_box(["06_outlet_recency.sql"])
 
 # ---- SQL explorer ----------------------------------------------------------
 with tab_sql:
